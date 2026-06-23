@@ -1,0 +1,416 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  padding: 1rem 0 2rem;
+  position: relative;
+  overflow-y: auto;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 3rem;
+  text-align: center;
+  background: linear-gradient(135deg, #fff, var(--text-muted));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
+}
+
+/* Difficulty Selection */
+.difficultyGrid {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  align-items: stretch;
+  flex-wrap: wrap;
+  max-width: 1000px;
+  width: 100%;
+}
+
+.diffCard {
+  flex: 1;
+  min-width: 250px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.diffCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 0%, var(--card-color), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 0;
+}
+
+.diffCard:hover {
+  transform: translateY(-8px) scale(1.02);
+  border-color: var(--card-color-solid);
+  box-shadow: 0 12px 40px var(--card-color);
+}
+
+.diffCard:hover::before {
+  opacity: 0.15;
+}
+
+.diffCard:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.cardContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.diffTitle {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--card-color-solid);
+  text-transform: uppercase;
+}
+
+.diffDesc {
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.easyCard {
+  --card-color: rgba(124, 245, 196, 0.3);
+  --card-color-solid: var(--accent-mint);
+}
+
+.mediumCard {
+  --card-color: rgba(168, 144, 254, 0.3);
+  --card-color-solid: var(--accent);
+}
+
+.hardCard {
+  --card-color: rgba(255, 155, 107, 0.3);
+  --card-color-solid: var(--accent-orange);
+}
+
+/* Game Interface */
+.gameArea {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1rem 2rem;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-pill);
+}
+
+.scoreBox {
+  display: flex;
+  flex-direction: column;
+}
+
+.scoreLabel {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.scoreValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent-teal);
+  font-variant-numeric: tabular-nums;
+}
+
+.timerBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 60px;
+  height: 60px;
+}
+
+.timerSvg {
+  transform: rotate(-90deg);
+  width: 100%;
+  height: 100%;
+}
+
+.timerCircleBg {
+  fill: none;
+  stroke: var(--border-glass);
+  stroke-width: 4;
+}
+
+.timerCircle {
+  fill: none;
+  stroke: var(--accent-pink);
+  stroke-width: 4;
+  stroke-dasharray: 157; /* 2 * PI * 25 */
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
+}
+
+.timerText {
+  position: absolute;
+  font-size: 1.2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.comboText {
+  position: absolute;
+  top: -40px;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--accent-gold);
+  text-shadow: 0 0 10px rgba(245, 217, 120, 0.5);
+  animation: comboPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes comboPop {
+  0% { opacity: 0; transform: translateY(20px) scale(0.5); }
+  50% { opacity: 1; transform: translateY(-5px) scale(1.2); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.equationBox {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 4rem 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-glow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.equationText {
+  font-size: 4rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
+}
+
+.inputGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+.numButton {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font-size: 1.8rem;
+  font-weight: 600;
+  padding: 1rem;
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.numButton:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.numButton:active {
+  transform: translateY(2px);
+}
+
+.colSpan2 {
+  grid-column: span 2;
+}
+
+.actionButton {
+  background: rgba(255, 126, 179, 0.1);
+  border-color: var(--accent-pink);
+  color: var(--accent-pink);
+}
+
+.actionButton:hover {
+  background: var(--accent-pink);
+  color: #fff;
+}
+
+/* Input Display */
+.inputWrapper {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.inputDisplay {
+  flex: 1;
+  height: 60px;
+  background: var(--bg-deep);
+  border: 2px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  transition: border-color 0.3s ease;
+}
+
+.voiceBtn {
+  position: absolute;
+  right: 1rem;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-glass);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-muted);
+}
+
+.voiceBtn:hover {
+  color: var(--accent-pink);
+  border-color: var(--accent-pink);
+  transform: scale(1.1);
+}
+
+.voiceBtn.listening {
+  color: #fff;
+  background: var(--accent-pink);
+  border-color: var(--accent-pink);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 126, 179, 0.4); }
+  70% { box-shadow: 0 0 0 15px rgba(255, 126, 179, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 126, 179, 0); }
+}
+
+.inputDisplay.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 15px var(--accent-soft);
+}
+
+.inputDisplay.error {
+  border-color: #ff4d4d;
+  animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+.inputDisplay.success {
+  border-color: var(--accent-mint);
+  box-shadow: 0 0 20px rgba(124, 245, 196, 0.4);
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+.gameOver {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 4rem;
+  max-width: 500px;
+  width: 100%;
+  animation: fadeIn 0.5s ease;
+}
+
+.gameOverTitle {
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--accent-pink);
+  margin-bottom: 1rem;
+}
+
+.finalScore {
+  font-size: 4rem;
+  font-weight: 800;
+  color: var(--accent-teal);
+  margin-bottom: 2rem;
+}
+
+.restartButton {
+  background: var(--accent);
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding: 1rem 3rem;
+  border-radius: var(--radius-pill);
+  transition: all 0.3s ease;
+  border: none;
+  box-shadow: 0 4px 15px rgba(168, 144, 254, 0.4);
+}
+
+.restartButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(168, 144, 254, 0.6);
+}
+
+.restartButton:active {
+  transform: translateY(1px);
+}

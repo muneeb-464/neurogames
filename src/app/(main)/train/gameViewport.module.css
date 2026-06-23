@@ -1,0 +1,8 @@
+/* Locks train game routes into the shell’s main column height (no page scroll). */
+.fill {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
