@@ -237,7 +237,7 @@ export default function QuickMathGame() {
           </div>
 
           <aside className={styles.focusLane} aria-label="Focus lane">
-            <span className={styles.focusWord}>FOCUS</span>
+            <span className={styles.focusWord}>FOCUS on </span>
           </aside>
         </div>
       </div>
