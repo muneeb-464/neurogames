@@ -3,7 +3,7 @@ import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
 import { AuthProvider } from "@/context/AuthContext";
 import { GameVideoProvider } from "@/context/GameVideoContext";
 import "./globals.css";
-
+// no rule
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
