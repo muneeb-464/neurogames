@@ -17,6 +17,13 @@ const games = [
     progress: "Play now",
   },
   {
+    slug: "/train/number-recall",
+    title: "Number Recall",
+    desc: "All digits flash at once — memorise in 5s, then replay in order. Easy/Medium/Hard or custom count.",
+    accent: "var(--accent-teal)",
+    progress: "Play now",
+  },
+  {
     slug: "/train/math",
     title: "Mathematics",
     desc: "Logic & numerical reasoning — Quick Math, combos, and more.",

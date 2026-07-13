@@ -40,6 +40,7 @@ export const GAME_NAMES: Record<string, string> = {
   "quick-math": "Quick Math",
   "math-training": "Math Training",
   "number-sequence": "Number Sequence",
+  "number-recall": "Number Recall",
 };
 
 /** Stats per game slug across all sessions */
