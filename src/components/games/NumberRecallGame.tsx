@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./NumberRecallGame.module.css";
 import GameBgVideo from "./_shared/GameBgVideo";
+import { useVoiceDigits } from "./_shared/useVoiceDigits";
 import { saveSession } from "@/lib/sessions";
 
 type Difficulty = "easy" | "medium" | "hard" | "custom";
@@ -55,6 +56,7 @@ export default function NumberRecallGame() {
   const [paused, setPaused] = useState(false);
   const [resultKind, setResultKind] = useState<"success" | "fail" | null>(null);
   const [mistakes, setMistakes] = useState(0);
+  const [voiceOn, setVoiceOn] = useState(false);
 
   const phaseRef = useRef(phase);
   const pausedRef = useRef(paused);
@@ -158,25 +160,51 @@ export default function NumberRecallGame() {
     return () => window.clearInterval(id);
   }, [phase, paused, finishRound]);
 
-  const onDigit = (n: number) => {
-    if (phase !== "recall" || paused) return;
-    if (entries.length >= sequence.length) return;
-    const next = [...entries, n];
+  // Ref-based so voice input (async, possibly several digits per utterance)
+  // and the keypad share one path without stale-closure bugs.
+  const onDigit = useCallback(
+    (n: number) => {
+      if (phaseRef.current !== "recall" || pausedRef.current) return;
+      const seq = sequenceRef.current;
+      const cur = entriesRef.current;
+      if (cur.length >= seq.length) return;
+      const next = [...cur, n];
+      entriesRef.current = next;
+      setEntries(next);
+      if (next.length >= seq.length) {
+        phaseRef.current = "result";
+        finishRound(next);
+      }
+    },
+    [finishRound],
+  );
+
+  const backspace = useCallback(() => {
+    if (phaseRef.current !== "recall" || pausedRef.current) return;
+    const next = entriesRef.current.slice(0, -1);
+    entriesRef.current = next;
     setEntries(next);
-    if (next.length >= sequence.length) {
-      finishRound(next);
-    }
-  };
+  }, []);
 
-  const backspace = () => {
-    if (phase !== "recall" || paused) return;
-    setEntries((e) => e.slice(0, -1));
-  };
-
-  const clearInput = () => {
-    if (phase !== "recall" || paused) return;
+  const clearInput = useCallback(() => {
+    if (phaseRef.current !== "recall" || pausedRef.current) return;
+    entriesRef.current = [];
     setEntries([]);
-  };
+  }, []);
+
+  const {
+    supported: voiceSupported,
+    listening,
+    error: voiceError,
+    heard,
+  } = useVoiceDigits({
+    enabled: voiceOn && phase === "recall" && !paused,
+    onDigit,
+    onCommand: (cmd) => {
+      if (cmd === "clear") clearInput();
+      else if (cmd === "back") backspace();
+    },
+  });
 
   // Result → tally + always continue to next round
   useEffect(() => {
@@ -308,6 +336,16 @@ export default function NumberRecallGame() {
               {mistakes} mistake{mistakes === 1 ? "" : "s"}
             </span>
           )}
+          {!feedback && voiceOn && phase === "recall" && (
+            <span className={styles.voiceStatus}>
+              {voiceError ??
+                (listening
+                  ? heard
+                    ? `Heard: “${heard}”`
+                    : "Listening — say the digits"
+                  : "Starting mic…")}
+            </span>
+          )}
         </div>
 
         <div className={styles.keypad}>
@@ -349,6 +387,16 @@ export default function NumberRecallGame() {
         </div>
 
         <div className={styles.controls}>
+          {voiceSupported && (
+            <button
+              type="button"
+              className={voiceOn ? `${styles.btn} ${styles.voiceBtnOn}` : styles.btn}
+              onClick={() => setVoiceOn((v) => !v)}
+              aria-pressed={voiceOn}
+            >
+              {voiceOn ? "🎤 Voice on" : "🎤 Voice off"}
+            </button>
+          )}
           <button
             type="button"
             className={styles.btn}
@@ -373,8 +421,9 @@ export default function NumberRecallGame() {
             <h2>Number recall</h2>
             <p>
               All the digits appear at once when you tap Reveal. Memorise them
-              within your timer, then replay the full chain in order. Difficulty
-              sets how many digits — or pick your own count and time.
+              within your timer, then replay the full chain in order — tap the
+              keypad or turn on Voice and say the digits aloud. Difficulty sets
+              how many digits — or pick your own count and time.
             </p>
             <div className={styles.diffRow}>
               {(["easy", "medium", "hard"] as const).map((d) => (
