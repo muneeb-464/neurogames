@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./NumberSequenceGame.module.css";
 import GameBgVideo from "./_shared/GameBgVideo";
+import { useVoiceDigits } from "./_shared/useVoiceDigits";
 import { saveSession } from "@/lib/sessions";
 
 type Difficulty = "easy" | "medium" | "hard";
@@ -40,11 +41,15 @@ export default function NumberSequenceGame() {
   const [paused, setPaused] = useState(false);
   const [resultKind, setResultKind] = useState<"success" | "fail" | null>(null);
   const [failReason, setFailReason] = useState<"wrong" | "time" | null>(null);
+  const [voiceOn, setVoiceOn] = useState(false);
 
   const watchTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const seqLenRef = useRef(seqLen);
   const phaseRef = useRef(phase);
   const pausedRef = useRef(paused);
+  const sequenceRef = useRef(sequence);
+  const inputIndexRef = useRef(inputIndex);
+  const recallLeftRef = useRef(recallLeftMs);
 
   useEffect(() => {
     seqLenRef.current = seqLen;
@@ -55,6 +60,15 @@ export default function NumberSequenceGame() {
   useEffect(() => {
     pausedRef.current = paused;
   }, [paused]);
+  useEffect(() => {
+    sequenceRef.current = sequence;
+  }, [sequence]);
+  useEffect(() => {
+    inputIndexRef.current = inputIndex;
+  }, [inputIndex]);
+  useEffect(() => {
+    recallLeftRef.current = recallLeftMs;
+  }, [recallLeftMs]);
 
   const clearWatchTimers = useCallback(() => {
     for (const t of watchTimersRef.current) clearTimeout(t);
@@ -142,31 +156,52 @@ export default function NumberSequenceGame() {
     return () => window.clearInterval(id);
   }, [phase, paused, sequence.length]);
 
-  const onDigit = (n: number) => {
-    if (phase !== "recall" || paused) return;
-    const expected = sequence[inputIndex];
+  // Ref-based so voice input (async, possibly several digits per utterance)
+  // and the keypad share one path without stale-closure bugs.
+  const onDigit = useCallback((n: number) => {
+    if (phaseRef.current !== "recall" || pausedRef.current) return;
+    const seq = sequenceRef.current;
+    const idx = inputIndexRef.current;
+    const expected = seq[idx];
     if (expected === undefined) return;
     if (n !== expected) {
+      phaseRef.current = "result";
       setFeedback("bad");
       setFailReason("wrong");
       setResultKind("fail");
       setPhase("result");
       return;
     }
-    const next = inputIndex + 1;
+    const next = idx + 1;
+    inputIndexRef.current = next;
     setInputIndex(next);
-    if (next >= sequence.length) {
+    if (next >= seq.length) {
+      phaseRef.current = "result";
       setFeedback("ok");
       setResultKind("success");
       setPhase("result");
-      setScore((s) => s + sequence.length * 10 + Math.floor(recallLeftMs / 200));
+      setScore((s) => s + seq.length * 10 + Math.floor(recallLeftRef.current / 200));
     }
-  };
+  }, []);
 
-  const clearInput = () => {
-    if (phase !== "recall" || paused) return;
+  const clearInput = useCallback(() => {
+    if (phaseRef.current !== "recall" || pausedRef.current) return;
+    inputIndexRef.current = 0;
     setInputIndex(0);
-  };
+  }, []);
+
+  const {
+    supported: voiceSupported,
+    listening,
+    error: voiceError,
+    heard,
+  } = useVoiceDigits({
+    enabled: voiceOn && phase === "recall" && !paused,
+    onDigit,
+    onCommand: (cmd) => {
+      if (cmd === "clear") clearInput();
+    },
+  });
 
   useEffect(() => {
     if (phase !== "result") return;
@@ -274,6 +309,16 @@ export default function NumberSequenceGame() {
               {failReason === "time" ? "Time up" : "Wrong digit"}
             </span>
           )}
+          {!feedback && voiceOn && phase === "recall" && (
+            <span className={styles.voiceStatus}>
+              {voiceError ??
+                (listening
+                  ? heard
+                    ? `Heard: “${heard}”`
+                    : "Listening — say the digits"
+                  : "Starting mic…")}
+            </span>
+          )}
         </div>
 
         <div className={styles.keypad}>
@@ -299,6 +344,16 @@ export default function NumberSequenceGame() {
         </div>
 
         <div className={styles.controls}>
+          {voiceSupported && (
+            <button
+              type="button"
+              className={voiceOn ? `${styles.btn} ${styles.voiceBtnOn}` : styles.btn}
+              onClick={() => setVoiceOn((v) => !v)}
+              aria-pressed={voiceOn}
+            >
+              {voiceOn ? "🎤 Voice on" : "🎤 Voice off"}
+            </button>
+          )}
           <button
             type="button"
             className={styles.btn}
@@ -327,7 +382,8 @@ export default function NumberSequenceGame() {
             <h2>Number sequence</h2>
             <p>
               Digits flash one at a time. Replay the full chain before the timer
-              ends. Difficulty changes flash speed and time allowed.
+              ends — tap the keypad or turn on Voice and say the digits aloud.
+              Difficulty changes flash speed and time allowed.
             </p>
             <div className={styles.diffRow}>
               {(["easy", "medium", "hard"] as const).map((d) => (
