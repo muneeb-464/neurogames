@@ -254,6 +254,18 @@
   color: #ff8b8b;
 }
 
+.voiceStatus {
+  color: var(--text-muted);
+  font-weight: 500;
+  font-style: italic;
+}
+
+.voiceBtnOn {
+  color: var(--accent-mint);
+  border-color: rgba(94, 231, 223, 0.45);
+  background: rgba(94, 231, 223, 0.08);
+}
+
 .keypad {
   flex-shrink: 0;
   display: grid;
